@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ETF 투자트렌드</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; font-family:"Malgun Gothic","Noto Sans CJK KR",sans-serif; }
+  body { background:#e9ebf0; display:flex; justify-content:center; }
+  #phone { width:100%; max-width:420px; min-height:100vh; background:#fff; position:relative; box-shadow:0 0 24px rgba(30,34,60,.12); }
+  /* ===== 홈/목록 헤더 (네이비) ===== */
+  .hdr { display:flex; align-items:center; gap:10px; padding:13px 14px; background:#383c6c; color:#a9acd0; font-size:13px; position:sticky; top:0; z-index:10; }
+  .hdr .back { cursor:pointer; font-size:16px; color:#fff; }
+  .hdr .t-dim { font-weight:600; cursor:default; }
+  .hdr .t-on { color:#fff; font-weight:800; font-size:14px; }
+  /* ===== 상세 헤더 (화이트) ===== */
+  .dhdr { display:flex; align-items:center; padding:12px 14px; background:#fff; border-bottom:1px solid #eef0f4; position:sticky; top:0; z-index:10; }
+  .dhdr .dt { flex:1; text-align:center; font-size:15px; font-weight:800; color:#1a1a1a; }
+  .dhdr .ic { width:34px; height:30px; border:none; background:none; font-size:16px; color:#3d434c; cursor:pointer; }
+  /* ===== 공통 ===== */
+  .sec { padding:16px 18px 6px; color:#111; font-size:16.5px; font-weight:800; }
+  .sec .cnt2 { font-size:11px; color:#9aa1ac; font-weight:600; margin-left:6px; }
+  .divide { height:8px; background:#f4f5f8; }
+  .badge { display:inline-block; font-size:10px; font-weight:800; border-radius:4px; padding:2.5px 7px; }
+  .trow { display:flex; align-items:center; gap:13px; padding:12px 18px; cursor:pointer; }
+  .trow:active { background:#f7f8fa; }
+  .trow .tx { flex:1; min-width:0; }
+  .trow .tt { color:#1a1a1a; font-size:14.5px; font-weight:800; line-height:1.4; margin-top:5px; }
+  .trow .tt mark { background:none; color:#e8332b; }
+  .kchips { display:flex; gap:5px; margin-top:6px; flex-wrap:wrap; }
+  .kchip { font-size:10px; color:#8a8f98; background:#f1f3f7; border-radius:10px; padding:2px 8px; font-weight:700; }
+  .kchip.match { color:#e8332b; background:#fdecea; }
+  .th2 { width:64px; height:64px; border-radius:12px; flex:none; background:#eef1f6; display:flex; align-items:center; justify-content:center; color:#aab0bc; font-size:9.5px; font-weight:800; overflow:hidden; }
+  .th2 img { width:100%; height:100%; object-fit:cover; }
+  .morerow { text-align:center; color:#4a5568; font-size:13px; font-weight:700; padding:13px 0 15px; cursor:pointer; }
+  .morerow:active { background:#f7f8fa; }
+  /* 시리즈 카드 */
+  .scard { padding:8px 18px 18px; cursor:pointer; }
+  .scard .hero { height:150px; border-radius:13px; overflow:hidden; background:linear-gradient(135deg,#dfe7f4,#c3d3ec); display:flex; align-items:center; justify-content:center; color:#4a6491; font-size:14px; font-weight:800; margin-bottom:10px; position:relative; }
+  .scard .hero img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .scard .sn { color:#111; font-size:15.5px; font-weight:800; }
+  .scard .sd { color:#8a8f98; font-size:12px; margin-top:3px; line-height:1.5; }
+  .scard .sc { color:#9aa1ac; font-size:11px; margin-top:5px; }
+  /* 검색 + 칩 */
+  .searchbar { display:flex; align-items:center; gap:8px; margin:10px 18px 4px; background:#f1f3f7; border-radius:11px; padding:10px 13px; }
+  .searchbar input { flex:1; background:none; border:none; outline:none; color:#1a1a1a; font-size:13px; }
+  .searchbar input::placeholder { color:#9aa1ac; }
+  .searchbar .go { background:#383c6c; color:#fff; font-size:11px; font-weight:800; border:none; border-radius:7px; padding:6px 13px; cursor:pointer; }
+  .catchips { display:flex; gap:7px; padding:10px 18px 4px; overflow-x:auto; scrollbar-width:none; }
+  .catchips::-webkit-scrollbar { display:none; }
+  .cat { font-size:12px; color:#4a5568; border:1px solid #d9dde3; border-radius:16px; padding:6px 13px; font-weight:700; cursor:pointer; white-space:nowrap; flex:none; background:#fff; }
+  .cat.on { color:#fff; background:#383c6c; border-color:#383c6c; }
+  .rescnt { font-size:11.5px; color:#8a8f98; padding:8px 18px 0; }
+  /* ===== 상세 ===== */
+  .d-title { padding:18px 18px 2px; font-size:19px; font-weight:800; color:#1a1a1a; line-height:1.4; }
+  .d-date { padding:0 18px; font-size:11px; color:#a2a7b0; margin:6px 0 12px; }
+  .sumbox { margin:0 18px 14px; background:#f4f6fa; border-left:3px solid #383c6c; border-radius:0 9px 9px 0; padding:11px 13px; font-size:12.5px; color:#3d434c; line-height:1.6; font-weight:600; }
+  .d-body { padding:2px 18px 10px; font-size:14.5px; color:#333; line-height:1.78; }
+  .d-body img { max-width:100%; border-radius:10px; }
+  .d-body h3 { color:#2e6be6; margin:14px 0 7px; font-size:15.5px; }
+  .d-body p { margin-bottom:11px; }
+  .sect { padding:18px 18px 4px; font-size:14.5px; font-weight:800; color:#1a1a1a; }
+  .etf-card { display:flex; align-items:center; border:1px solid #e6e9ef; border-radius:11px; margin:8px 18px; padding:12px 13px; cursor:pointer; }
+  .etf-card:active { background:#f7f8fa; }
+  .etf-ic { width:32px; height:32px; border-radius:50%; background:#383c6c; color:#fff; font-size:9px; font-weight:800; display:flex; align-items:center; justify-content:center; margin-right:11px; flex:none; }
+  .etf-nm { flex:1; }
+  .etf-nm .n { font-size:13px; font-weight:700; color:#222; }
+  .etf-nm .c { font-size:10.5px; color:#a2a7b0; margin-top:1px; }
+  .golink { color:#2e6be6; font-size:12.5px; font-weight:800; }
+  .btn-line { display:block; margin:11px 18px 0; border:1px solid #c9cdd6; border-radius:10px; text-align:center; padding:12px 0; font-size:13px; font-weight:700; color:#3d434c; background:#fff; cursor:pointer; width:calc(100% - 36px); }
+  .btn-cta { display:block; margin:12px 18px 0; border-radius:10px; border:none; width:calc(100% - 36px); text-align:center; padding:13px 0; font-size:13.5px; font-weight:800; color:#fff; background:#383c6c; cursor:pointer; }
+  /* 상세 상단 히어로 — ③ 메인 이미지 위 타이틀 오버레이 (권장 1080×600) */
+  .hero-img { position:relative; width:100%; aspect-ratio:1080/600; background:#eef1f6; overflow:hidden; }
+  .hero-img img { width:100%; height:100%; object-fit:cover; display:block; }
+  .hero-img .hgrad { position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0) 35%, rgba(10,14,30,.62) 100%); }
+  .hero-img .htitle { position:absolute; left:18px; right:18px; bottom:16px; color:#fff; font-size:20px; font-weight:800; line-height:1.4; text-shadow:0 1px 6px rgba(0,0,0,.35); }
+  .dtags { display:flex; flex-wrap:wrap; gap:7px; padding:4px 18px 2px; }
+  .dtag { font-size:11.5px; color:#2e6be6; background:#eaf1fe; border:none; border-radius:14px; padding:5px 11px; font-weight:700; cursor:pointer; }
+  .sumbox .slabel { display:block; font-size:12px; font-weight:800; color:#383c6c; margin-bottom:5px; }
+  .btn-pdf { display:block; margin:14px 18px 0; border:none; border-radius:10px; text-align:center; padding:13px 0; font-size:13px; font-weight:800; color:#2e6be6; background:#eaf1fe; cursor:pointer; width:calc(100% - 36px); }
+  /* 관련 ETF — 카드 캐러셀 (시안 반영) */
+  .etfroll { display:flex; gap:10px; overflow-x:auto; scroll-snap-type:x mandatory; padding:8px 18px 2px; scrollbar-width:none; }
+  .etfroll::-webkit-scrollbar { display:none; }
+  .ecard { flex:none; width:80%; scroll-snap-align:center; border:1px solid #d9dde3; border-radius:13px; padding:14px 15px 13px; cursor:pointer; background:#fff; }
+  .ecard:active { background:#f7f8fa; }
+  .ebadge { display:inline-block; font-size:10px; font-weight:800; border-radius:10px; padding:2.5px 9px; border:1px solid; margin-right:6px; }
+  .ecard .enm { font-size:15px; font-weight:800; color:#1a1a1a; margin:10px 0 2px; line-height:1.35; }
+  .ecard .ecd { font-size:11.5px; color:#6b7280; }
+  .ecard .eret { text-align:right; margin-top:8px; font-size:11.5px; color:#5f6672; }
+  .ecard .eret b { font-size:17px; font-weight:800; margin-left:6px; }
+  .edots { display:flex; gap:6px; justify-content:center; padding:9px 0 2px; }
+  .edots i { width:14px; height:4px; border-radius:2px; background:#d9dde3; }
+  .edots i.on { background:#383c6c; }
+  /* 추천 */
+  .rate-wrap { text-align:center; padding:20px 0 6px; border-top:8px solid #f4f5f8; margin-top:20px; }
+  .rate-q { font-size:14.5px; font-weight:800; color:#1a1a1a; }
+  .rate-n { font-size:12px; color:#8a8f98; margin:6px 0 11px; }
+  .rate-n b { color:#2e6be6; }
+  .rate-btn { border:1.5px solid #383c6c; background:#fff; border-radius:20px; padding:9px 30px; font-size:13px; font-weight:800; color:#383c6c; cursor:pointer; }
+  .rate-btn.done { background:#383c6c; color:#fff; cursor:default; }
+  /* 인기글 */
+  .poprow { display:flex; align-items:center; gap:13px; margin:10px 18px; cursor:pointer; }
+  .poprow:active { background:#f7f8fa; }
+  .poprow .pthumb { width:64px; height:64px; border-radius:10px; overflow:hidden; flex:none; background:#eef1f6; display:flex; align-items:center; justify-content:center; color:#aab0bc; font-size:9px; font-weight:800; }
+  .poprow .pthumb img { width:100%; height:100%; object-fit:cover; }
+  .poprow .t { font-size:13.5px; font-weight:800; color:#1a1a1a; line-height:1.4; }
+  .poprow .d { font-size:11px; color:#6b7280; margin-top:3px; }
+  /* 알아두세요 / 심사필 */
+  .notice { background:#f6f7f9; padding:15px 18px 8px; margin-top:16px; }
+  .notice .nt { font-size:12.5px; font-weight:800; color:#5f6672; margin-bottom:7px; }
+  .notice p { font-size:10.5px; color:#8a8f98; line-height:1.65; margin-bottom:5px; }
+  .simsa { font-size:10.5px; font-weight:700; color:#5f6672; padding:6px 18px 20px; background:#f6f7f9; }
+  .empty { color:#9aa1ac; font-size:12.5px; text-align:center; padding:36px 0; line-height:1.7; }
+  /* PDF 팝업 */
+  #pdfpop { position:fixed; inset:0; background:rgba(20,24,38,.55); display:none; justify-content:center; align-items:flex-start; z-index:30; }
+  #pdfpop .box { width:92%; max-width:400px; margin-top:7vh; background:#fff; border-radius:15px; overflow:hidden; box-shadow:0 12px 34px rgba(0,0,0,.35); }
+  #pdfpop .ph { display:flex; align-items:center; padding:12px 15px; border-bottom:1px solid #f0f1f4; }
+  #pdfpop .pt { flex:1; font-size:13px; font-weight:800; color:#222; }
+  .xbtn { width:27px; height:27px; border-radius:50%; background:#f1f3f7; border:none; font-size:12px; font-weight:800; cursor:pointer; color:#3d434c; }
+  #pdfpop iframe { width:100%; height:64vh; border:none; background:#e8ebf1; }
+  /* 공유 바텀시트 */
+  #sharepop { position:fixed; inset:0; background:rgba(20,24,38,.45); display:none; justify-content:center; align-items:flex-end; z-index:30; }
+  #sharepop .sheet { width:100%; max-width:420px; background:#fff; border-radius:18px 18px 0 0; padding:16px 18px 26px; }
+  #sharepop .sh { display:flex; align-items:center; margin-bottom:14px; }
+  #sharepop .st { flex:1; font-size:15px; font-weight:800; color:#1a1a1a; }
+  .share-row { display:flex; gap:12px; }
+  .share-it { flex:1; border:1px solid #e6e9ef; border-radius:12px; padding:14px 0 11px; text-align:center; cursor:pointer; background:#fff; }
+  .share-it:active { background:#f7f8fa; }
+  .share-it .em { font-size:22px; }
+  .share-it .lb { font-size:11px; font-weight:700; color:#3d434c; margin-top:6px; }
+  /* 숏츠 (관리자 미리보기용 — 홈 미노출) */
+  .shgrid { display:grid; grid-template-columns:1fr 1fr; gap:12px 10px; padding:10px 18px 20px; }
+  .shcard { cursor:pointer; }
+  .thv { width:100%; aspect-ratio:9/16; border-radius:12px; background:#eef1f6; position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center; color:#aab0bc; font-size:10px; font-weight:800; }
+  .thv img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .shcard .st2 { color:#1a1a1a; font-size:12px; font-weight:700; margin-top:6px; line-height:1.35; }
+  .pwrap { background:#000; display:flex; justify-content:center; }
+  .pwrap iframe { width:100%; max-width:min(420px, 72vh * 9 / 16); aspect-ratio:9/16; max-height:72vh; border:none; display:block; }
+  /* 네이티브 화면 시뮬레이션 (종목 상세 / ETF 탐색) */
+  .npop { position:fixed; inset:0; display:none; justify-content:center; z-index:40; background:rgba(0,0,0,.3); }
+  .npop .nframe { width:100%; max-width:420px; height:100vh; background:#0d0e14; color:#fff; display:flex; flex-direction:column; overflow:hidden; }
+  .npop .nscroll { flex:1; overflow-y:auto; }
+  .nsb { background:#0d0e14; color:#fff; font-size:11px; display:flex; justify-content:space-between; padding:6px 16px 2px; }
+  .ntag { font-size:8.5px; font-weight:800; color:#9aa1ac; border:1px solid #3a3d4d; border-radius:4px; padding:1px 6px; }
+  .shdr { display:flex; align-items:flex-start; padding:16px 16px 0; }
+  .shdr .snm { flex:1; text-align:center; }
+  .shdr .scode { font-size:12px; color:#8a8f98; }
+  .shdr .sname { font-size:19px; font-weight:800; margin-top:2px; }
+  .shdr .nx { font-size:20px; color:#fff; background:none; border:none; cursor:pointer; padding:4px 2px; }
+  .sbdg { display:inline-block; font-size:10.5px; font-weight:800; border-radius:12px; padding:4px 10px; margin-right:6px; }
+  .sprice { padding:10px 16px 0; }
+  .sprice .pv { font-size:34px; font-weight:800; color:#f04452; }
+  .sprice .pc { font-size:13px; color:#f04452; margin-top:2px; }
+  .sinav { display:flex; justify-content:space-between; padding:12px 16px; font-size:12.5px; color:#8a8f98; border-bottom:1px solid #22242e; }
+  .stabs { display:flex; gap:4px; padding:10px 12px; align-items:center; }
+  .stab { font-size:13px; font-weight:700; color:#8a8f98; padding:7px 14px; border-radius:9px; }
+  .stab.on { background:#22242e; color:#fff; }
+  .schart svg { width:100%; display:block; }
+  .sxaxis { display:flex; justify-content:space-between; padding:2px 20px 10px; font-size:11px; color:#8a8f98; }
+  .stabs2 { display:flex; gap:20px; padding:12px 18px 0; border-top:1px solid #22242e; }
+  .stab2 { font-size:14px; font-weight:700; color:#8a8f98; padding-bottom:10px; }
+  .stab2.on { color:#fff; border-bottom:2px solid #fff; }
+  .soverview { padding:16px 18px; border-top:1px solid #22242e; }
+  .soverview .ot { font-size:15px; font-weight:800; margin-bottom:10px; }
+  .soverview .ob { font-size:13.5px; color:#c9cdd6; line-height:1.7; }
+  .sbtns { display:flex; gap:9px; padding:12px 16px 16px; border-top:1px solid #22242e; }
+  .sbtns .b1 { width:52px; border-radius:11px; background:#1b2340; color:#fff; border:none; font-size:16px; cursor:pointer; }
+  .sbtns .b2 { flex:1; border-radius:11px; background:none; color:#fff; border:1px solid #3a3d4d; padding:14px 0; font-size:14px; font-weight:800; cursor:pointer; }
+  .sbtns .b3 { flex:1.4; border-radius:11px; background:#2a3878; color:#fff; border:none; padding:14px 0; font-size:14px; font-weight:800; cursor:pointer; }
+  .ehdr2 { display:flex; align-items:center; gap:16px; padding:14px 16px; font-size:14px; color:#8a8f98; font-weight:700; }
+  .ehdr2 .eback { color:#fff; font-size:18px; cursor:pointer; }
+  .ehdr2 .eon { color:#fff; font-weight:800; }
+  .ecardk { background:#181a23; border-radius:16px; margin:10px 14px; padding:18px 16px; }
+  .ecardk .et { font-size:17px; font-weight:800; }
+  .esearch { display:flex; border:1.5px solid #8b5cf6; border-radius:12px; padding:11px 13px; margin-top:14px; color:#6a6f7e; font-size:13px; }
+  .echips { display:flex; gap:8px; flex-wrap:wrap; margin-top:13px; }
+  .echip { font-size:12px; color:#c9cdd6; border:1px solid #2e3140; border-radius:17px; padding:7px 13px; font-weight:700; cursor:pointer; }
+  .ebanner { background:#141c3a; border-radius:16px; margin:4px 14px 10px; padding:17px 16px; font-size:16px; font-weight:800; cursor:pointer; }
+  .etheme { background:#181a23; border-radius:16px; margin:0 14px 14px; padding:16px; }
+  .etheme .tt2 { font-size:15.5px; font-weight:800; margin-bottom:12px; }
+  .etheme .trow2 { display:flex; gap:10px; }
+  .ethm { flex:1; background:#20222d; border-radius:12px; padding:12px; cursor:pointer; }
+  .ethm .rk { font-size:10.5px; font-weight:800; background:#0d0e14; border-radius:10px; padding:3px 9px; display:inline-block; }
+  .ethm .tn { font-size:14px; font-weight:800; margin-top:9px; }
+  .ethm .tr { font-size:12px; color:#f04452; font-weight:700; margin-top:3px; }
+  /* 카카오톡 전송 미리보기 */
+  #kakaopop { position:fixed; inset:0; background:rgba(20,24,38,.55); display:none; justify-content:center; align-items:center; z-index:45; }
+  #kakaopop .kbox { width:88%; max-width:340px; }
+  .kkwrap { background:#9bbbd4; border-radius:16px; padding:14px 14px 16px; }
+  .kkhead { font-size:12px; font-weight:800; color:#2f4a5e; margin-bottom:10px; }
+  .kkcard { background:#fff; border-radius:14px; overflow:hidden; box-shadow:0 4px 14px rgba(0,0,0,.18); }
+  .kkimg { height:150px; background:#dfe7f4; display:flex; align-items:center; justify-content:center; color:#4a6491; font-size:12px; font-weight:800; overflow:hidden; }
+  .kkimg img { width:100%; height:100%; object-fit:cover; }
+  .kkbody { padding:12px 14px 10px; }
+  .kkt { font-size:14px; font-weight:800; color:#1a1a1a; line-height:1.4; }
+  .kkd { font-size:12px; color:#5f6672; line-height:1.55; margin-top:5px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+  .kkfoot { font-size:10.5px; color:#8a8f98; padding:0 14px 10px; }
+  .kkview { display:block; width:100%; border:none; border-top:1px solid #eceef2; background:#f7f8fa; padding:11px 0; font-size:12.5px; font-weight:800; color:#3d434c; cursor:pointer; }
+  .kkbtns { display:flex; gap:9px; margin-top:13px; }
+  .kkbtns button { flex:1; border:none; border-radius:10px; padding:11px 0; font-size:12.5px; font-weight:800; cursor:pointer; }
+</style>
+</head>
+<body>
+<div id="phone"><div id="view"></div></div>
+
+<div id="pdfpop"><div class="box">
+  <div class="ph"><div class="pt" id="pdf-title">원문 리포트</div><button class="xbtn" onclick="closePdf()">✕</button></div>
+  <iframe id="pdf-frame"></iframe>
+</div></div>
+
+<div id="sharepop" onclick="if(event.target===this)closeShare()"><div class="sheet">
+  <div class="sh"><div class="st">공유하기</div><button class="xbtn" onclick="closeShare()">✕</button></div>
+  <div class="share-row">
+    <div class="share-it" onclick="shareKakao()"><div class="em">💬</div><div class="lb">카카오톡</div></div>
+    <div class="share-it" onclick="shareLink()"><div class="em">🔗</div><div class="lb">링크 복사</div></div>
+  </div>
+</div></div>
+
+<!-- 카카오톡 전송 미리보기 — 이미지=③ 메인 이미지 · 제목=② · 설명=④ SUMMARY -->
+<div id="kakaopop" onclick="if(event.target===this)this.style.display='none'"><div class="kbox">
+  <div class="kkwrap">
+    <div class="kkhead">카카오톡 전송 미리보기</div>
+    <div class="kkcard" id="kkcard"></div>
+    <div class="kkbtns">
+      <button style="background:#fee500; color:#3c1e1e;" onclick="document.getElementById('kakaopop').style.display='none'; alert('카카오톡 전송 완료 (파일럿 시뮬레이션)\n실서비스: 카카오 공유 SDK — og 메타(③·②·④)')">전송</button>
+      <button style="background:#4a5a68; color:#fff;" onclick="document.getElementById('kakaopop').style.display='none'">닫기</button>
+    </div>
+  </div>
+</div></div>
+
+<!-- 네이티브 시뮬: 종목 상세 -->
+<div class="npop" id="stockpop"><div class="nframe">
+  <div class="nsb"><span>9:41</span><span class="ntag">네이티브 화면 시뮬레이션</span><span>📶 🔋</span></div>
+  <div class="nscroll" id="stockview"></div>
+</div></div>
+
+<!-- 네이티브 시뮬: 국내 ETF 탐색 홈 (화면번호 2851) -->
+<div class="npop" id="explorepop"><div class="nframe">
+  <div class="nsb"><span>9:41</span><span class="ntag">네이티브 화면 시뮬레이션 — 화면번호 2851</span><span>📶 🔋</span></div>
+  <div class="ehdr2"><span class="eback" onclick="document.getElementById('explorepop').style.display='none'">←</span>
+    <span class="eon">홈</span><span>테마</span><span>비교</span><span>ETF구성종목</span><span>ETF시세</span></div>
+  <div class="nscroll">
+    <div class="ecardk">
+      <div class="et">ETF 종목을 검색해볼까요? <span style="float:right; font-size:15px;">🇰🇷 ⚪</span></div>
+      <div class="esearch">종목명을 입력해주세요 <span style="margin-left:auto;">🔍</span></div>
+      <div class="echips"><span class="echip">📈 지수</span><span class="echip">↕️ 인버스·레버리지</span><span class="echip">🌏 투자국가</span><span class="echip">💰 단기자금</span><span class="echip">🧩 섹터</span></div>
+    </div>
+    <div class="ebanner">종목으로 ETF 검색 <span style="float:right;">🔴🔵</span></div>
+    <div class="etheme"><div class="tt2">지금 뜨는 ETF 테마 ›</div>
+      <div class="trow2">
+        <div class="ethm"><span class="rk">1위</span><span style="float:right; font-size:11px; color:#f04452;">▲ 3/3</span><div class="tn">비만치료</div><div class="tr">+1.86%</div></div>
+        <div class="ethm"><span class="rk">2위</span><span style="float:right; font-size:11px; color:#f04452;">▲ 16/19</span><div class="tn">2차전지</div><div class="tr">+1.34%</div></div>
+      </div></div>
+  </div>
+</div></div>
+
+<script>
+const $v = document.getElementById("view");
+const api = u => fetch(u).then(r=>r.json());
+// 시리즈별 뱃지 색 (텍스트/배경)
+const BC = [["#7048c8","#f1eafd"],["#0f8a5f","#e5f6ef"],["#b45f06","#fdf2e2"],["#1e6fd0","#e7f0fc"],["#c0266f","#fbe9f2"],["#4a5568","#eef0f4"]];
+let SERIES = [];
+const bcol = id => BC[Math.max(SERIES.findIndex(s=>s.id==id),0)%BC.length];
+const badge = (sid, name) => {
+  const s = SERIES.find(x=>x.id==sid);
+  if(s && s.label_image) return `<img src="${s.label_image}" style="height:18px; display:block; border-radius:4px;" alt="${esc(name)}">`;
+  const [c,b]=bcol(sid); return `<span class="badge" style="color:${c}; background:${b};">${esc(name)}</span>`; };
+const esc = s => (s||"").replace(/</g,"&lt;");
+const hl = (s,q) => q ? esc(s).replace(new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"gi"), m=>`<mark>${m}</mark>`) : esc(s);
+const dt = s => (s||"").slice(0,10).replace(/-/g,".");
+
+function hdr(back){
+  return `<div class="hdr">${back?'<span class="back" onclick="history.back()">←</span>':'<span class="back">←</span>'}<span class="t-dim">실시간 ETF 이슈</span><span class="t-on">ETF 투자트렌드</span></div>`;
+}
+// 상세 헤더 — 시리즈명 + 공유/닫기 (X = 웹뷰 닫기 → 파일럿에서는 홈 복귀)
+function dhdr(title){
+  return `<div class="dhdr"><button class="ic" onclick="history.back()" aria-label="뒤로">‹</button>
+    <div class="dt">${esc(title)}</div>
+    <button class="ic" onclick="openShare()" aria-label="공유">⇪</button></div>`;
+}
+function searchbar(val){
+  return `<div class="searchbar"><span style="color:#9aa1ac;">🔍</span>
+    <input id="q" value="${esc(val||"")}" placeholder="제목·키워드로 검색해보세요" onkeydown="if(event.key==='Enter')goSearch()">
+    <button class="go" onclick="goSearch()">검색</button></div>`;
+}
+function goSearch(){
+  const s = new URLSearchParams((location.hash.split("?")[1])||"").get("s")||"";
+  location.hash = "#list?q=" + encodeURIComponent(document.getElementById("q").value.trim()) + (s?`&s=${s}`:"");
+}
+const matchKw = (c,q) => [c.k1,c.k2,c.k3,c.k4].some(k=>k && k.includes(q));
+const kwChips = (c,q) => [c.k1,c.k2,c.k3,c.k4].filter(Boolean).map(k=>`<span class="kchip ${k.includes(q)?'match':''}"># ${esc(k)}</span>`).join("");
+// 리스트 썸네일 — 시리즈 '목록 썸네일'(트렌드별 공통 아이콘) 우선, 없으면 글 메인이미지
+const sIcon = sid => { const s = SERIES.find(x=>x.id==sid); return (s && s.icon) || ""; };
+function row(c, q){
+  const th = sIcon(c.series_id) || c.main_image;
+  return `<div class="trow" onclick="location.hash='#post/${c.id}'">
+    <div class="tx">${badge(c.series_id, c.series_name)}
+      <div class="tt">${hl(c.title,q)}</div>
+      ${q && matchKw(c,q) ? `<div class="kchips">${kwChips(c,q)}</div>` : ""}</div>
+    <div class="th2">${th?`<img src="${th}">`:"이미지"}</div></div>`;
+}
+
+// ---------- 홈 ----------
+async function vHome(){
+  SERIES = await api("/api/series");
+  const rows = await api("/api/contents");
+  const active = SERIES.filter(s=>s.use);
+  $v.innerHTML = hdr(false) +
+    `<div class="sec">ETF 투자 트렌드</div>` +
+    (rows.slice(0,4).map(c=>row(c)).join("") || `<div class="empty">노출 중인 컨텐츠가 없습니다<br>관리자에서 '사용' 상태로 등록해 보세요</div>`) +
+    (rows.length ? `<div class="morerow" onclick="location.hash='#list'">전체글 보기 ›</div>` : "") +
+    `<div class="divide"></div><div class="sec">시리즈별 컨텐츠</div>` +
+    active.map(s=>`<div class="scard" onclick="location.hash='#list?s=${s.id}'">
+        <div class="hero">${esc(s.name)}${s.image?`<img src="${s.image}" onerror="this.remove()">`:""}</div>
+        <div class="sn">${esc(s.name)}</div>
+        <div class="sd">${esc(s.intro||"")}</div>
+        <div class="sc">총 ${s.live_cnt}개 글</div></div>`).join("");
+  window.scrollTo(0,0);
+}
+
+// ---------- 전체글 / 검색 ----------
+async function vList(q, sid){
+  SERIES = await api("/api/series");
+  const rows = await api(`/api/contents?q=${encodeURIComponent(q||"")}&series=${sid||0}`);
+  const chips = [`<span class="cat ${!sid?'on':''}" onclick="location.hash='#list?q=${encodeURIComponent(q||"")}'">전체</span>`]
+    .concat(SERIES.filter(s=>s.use).map(s=>`<span class="cat ${sid==s.id?'on':''}" onclick="location.hash='#list?q=${encodeURIComponent(q||"")}&s=${s.id}'">${esc(s.name)}</span>`));
+  $v.innerHTML = hdr(true) +
+    `<div class="sec">전체글</div>` +
+    searchbar(q) +
+    `<div class="catchips">${chips.join("")}</div>
+     <div class="rescnt">${q?`'${esc(q)}' 검색 결과 ${rows.length}건`:`총 ${rows.length}건`}</div>` +
+    (rows.map(c=>row(c,q)).join("") || `<div class="empty">${q?"검색 결과가 없습니다":"노출 중인 글이 없습니다"}</div>`);
+  window.scrollTo(0,0);
+}
+
+// ---------- 상세 ----------
+let CUR = null;
+async function vPost(id){
+  SERIES = await api("/api/series");
+  const c = await api(`/api/contents/${id}?view=1`);
+  CUR = c;
+  const notice = (await api("/api/notice")).value.split("\n").filter(Boolean);
+  const pops = c.pop_items || [];   // 서버 계산 — 수동(⑬ 지정 순서) 또는 자동(시리즈 內 정렬)
+  const etfs = c.etf_items || [];   // 서버가 종목 마스터로 해석 — 미등록 코드는 제외됨
+  const reacted = !!localStorage.getItem(`react_${c.id}`);
+  const tags = [c.k1,c.k2,c.k3,c.k4].filter(Boolean);
+  $v.innerHTML = dhdr(c.series_name) + `
+    ${c.main_image
+      ? `<div class="hero-img"><img src="${c.main_image}"><div class="hgrad"></div><div class="htitle">${esc(c.title)}</div></div>
+         <div class="d-date" style="margin-top:12px;">${dt(c.start_at)}</div>`
+      : `<div class="d-title">${esc(c.title)}</div><div class="d-date">${dt(c.start_at)}</div>`}
+    ${tags.length?`<div class="dtags">${tags.map(k=>`<button class="dtag" onclick="location.hash='#list?q=${encodeURIComponent(k)}'"># ${esc(k)}</button>`).join("")}</div>`:""}
+    ${c.summary?`<div class="sumbox" style="margin-top:12px;"><span class="slabel">요약</span>${esc(c.summary)}</div>`:""}
+    <div class="d-body">${c.body_html}</div>
+    ${c.pdf_url?`<button class="btn-pdf" onclick="openPdf('${c.pdf_url}','${esc(c.pdf_name)}')">리포트 원문보기</button>`:""}
+    ${etfs.length?`<div class="sect">관련 ETF</div><div class="etfroll" id="etfroll">`+etfs.map(e=>{
+        const r = ETF_R3[e.code];
+        return `<div class="ecard" ${etfs.length===1?'style="width:100%;"':''} onclick="openStock('${e.code}','${esc(e.name)}')">
+          <div><span class="ebadge" style="color:#0f8a5f; border-color:#8fd4b8;">국내</span><span class="ebadge" style="color:#5f6672; border-color:#c9cdd6;">ETF</span></div>
+          <div class="enm">${esc(e.name)}</div><div class="ecd">${e.code}</div>
+          <div class="eret">3개월 수익률 · ${R3_ASOF} 기준${r?`<b style="color:${r.startsWith('-')?'#2e6be6':'#e8332b'};">${r}</b>`:`<b style="color:#8a8f98;">—</b>`}</div></div>`;
+      }).join("")+`</div><div class="edots" id="edots"></div>`:""}
+    ${c.cta_label && c.cta_screen?`<button class="btn-cta" onclick="goScreen('${esc(c.cta_screen)}')">${esc(c.cta_label)}</button>`:""}
+    <div class="rate-wrap">
+      <div class="rate-q">이번 글, 어떠셨나요?</div>
+      <div class="rate-n"><b id="upn">${c.ups.toLocaleString()}</b>명에게 도움이 됐어요</div>
+      <button class="rate-btn ${reacted?'done':''}" id="rbtn" onclick="react(${c.id})">${reacted?'도움돼요 ✓':'👍 도움돼요'}</button>
+      <div style="height:16px;"></div></div>
+    ${pops.length?`<div class="sect" style="padding-top:4px;">같은 주제 인기글</div>`+pops.map(p=>{
+        const th = p.main_image || p.sicon;
+        return `<div class="poprow" onclick="location.hash='#post/${p.id}'">
+          <div class="pthumb">${th?`<img src="${th}">`:"썸네일"}</div>
+          <div><div class="t">${esc(p.title)}</div><div class="d">${dt(p.created_at)}</div></div></div>`;
+      }).join("")+`<div style="height:8px;"></div>`:""}
+    <div class="notice"><div class="nt">알아두세요!</div>
+      ${notice.map(n=>`<p>· ${esc(n)}</p>`).join("")}
+      ${c.notice?`<p>· ${esc(c.notice)}</p>`:""}</div>
+    ${c.simsa?`<div class="simsa">${esc(c.simsa)}</div>`:""}`;
+  window.scrollTo(0,0);
+  startRoll();
+}
+// 관련 ETF 캐러셀 — 자동 롤링 3초, 터치 시 정지, 도트
+let rollT = null;
+const ETF_R3 = { "487550":"+8.42%", "458730":"+2.15%", "091160":"+15.30%", "069500":"+3.41%",
+                 "122630":"+6.95%", "360750":"+5.12%", "133690":"+7.88%", "476690":"-4.37%" };  // 예시
+const R3_ASOF = "26.10.27";
+function startRoll(){
+  clearInterval(rollT);
+  const el = document.getElementById("etfroll"), dots = document.getElementById("edots");
+  if(!el) return;
+  const n = el.children.length;
+  if(dots) dots.innerHTML = n>1 ? Array.from({length:n},(_,i)=>`<i class="${i===0?'on':''}"></i>`).join("") : "";
+  if(n < 2) return;
+  const step = () => el.children[0].offsetWidth + 10;
+  const idx = () => Math.round(el.scrollLeft / step());
+  el.onscroll = () => { if(dots) [...dots.children].forEach((d,i)=>d.classList.toggle("on", i===idx())); };
+  rollT = setInterval(()=>{ el.scrollTo({left: ((idx()+1)%n)*step(), behavior:"smooth"}); }, 3000);
+  el.addEventListener("pointerdown", ()=>clearInterval(rollT), {once:true});
+}
+async function react(id){
+  if(localStorage.getItem(`react_${id}`)) return;
+  const r = await fetch(`/api/contents/${id}/react`, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({type:"up"})}).then(x=>x.json());
+  localStorage.setItem(`react_${id}`, "up");
+  document.getElementById("upn").textContent = r.ups.toLocaleString();
+  const b = document.getElementById("rbtn"); b.textContent = "도움돼요 ✓"; b.classList.add("done");
+}
+function openPdf(url, name){
+  document.getElementById("pdf-title").textContent = "📄 " + (name || "원문 리포트");
+  document.getElementById("pdf-frame").src = url;
+  document.getElementById("pdfpop").style.display = "flex";
+}
+function closePdf(){ document.getElementById("pdfpop").style.display = "none"; document.getElementById("pdf-frame").src = ""; }
+// 공유 — 실서비스: 카카오 공유 SDK + og 메타(제목·SUMMARY·메인이미지) 사용
+function openShare(){ document.getElementById("sharepop").style.display = "flex"; }
+function closeShare(){ document.getElementById("sharepop").style.display = "none"; }
+function shareKakao(){
+  closeShare();
+  if(!CUR) return;
+  document.getElementById("kkcard").innerHTML = `
+    <div class="kkimg">${CUR.main_image?`<img src="${CUR.main_image}">`:"③ 메인 이미지 (관리자 등록)"}</div>
+    <div class="kkbody"><div class="kkt">${esc(CUR.title)}</div><div class="kkd">${esc(CUR.summary||"")}</div></div>
+    <div class="kkfoot">영웅문S# · ETF 투자트렌드</div>
+    <button class="kkview" onclick="document.getElementById('kakaopop').style.display='none'; alert('수신자: [자세히 보기] 탭 → 이 글 상세로 이동 (딥링크)')">자세히 보기</button>`;
+  document.getElementById("kakaopop").style.display = "flex";
+}
+async function shareLink(){
+  try { await navigator.clipboard.writeText(location.href); alert("링크가 복사되었습니다"); }
+  catch(e){ prompt("링크를 복사하세요", location.href); }
+  closeShare();
+}
+// CTA — 영웅문S# 화면번호 이동 (파일럿: 2851=ETF 탐색 시뮬, 그 외 번호는 안내)
+function goScreen(n){
+  if(String(n)==="2851") document.getElementById("explorepop").style.display = "flex";
+  else alert("네이티브 이동 — 영웅문S# 화면번호 " + n + "\n(파일럿: 2851만 시뮬 화면 제공)");
+}
+// 관련 ETF — 종목 상세(네이티브) 시뮬레이션 (가격 등은 예시 데이터)
+const ETF_INFO = {
+  "487550": { price:"11,240", chg:"+310 (+2.84%)", inav:"11,236.42", gap:"0.03%", desc:"미국 AI 데이터센터 전력 인프라 관련 매출이 발생하는 기업에 투자하는 패시브 ETF" },
+  "458730": { price:"13,085", chg:"+95 (+0.73%)",  inav:"13,082.10", gap:"0.02%", desc:"미국 배당 성장주로 구성된 다우존스 배당 지수를 추종하며 월 분배금을 지급하는 패시브 ETF" },
+  "091160": { price:"45,310", chg:"+1,120 (+2.53%)", inav:"45,298.77", gap:"0.02%", desc:"국내 반도체 산업 대표 기업에 투자하는 KRX 반도체 지수 추종 패시브 ETF" },
+  "069500": { price:"38,920", chg:"+410 (+1.06%)", inav:"38,916.55", gap:"0.01%", desc:"코스피 200 지수를 추종하는 국내 대표 패시브 ETF" },
+  "122630": { price:"21,450", chg:"+450 (+2.14%)", inav:"21,446.80", gap:"0.02%", desc:"코스피 200 일간 수익률의 2배를 추종하는 레버리지 ETF" },
+  "360750": { price:"21,880", chg:"+150 (+0.69%)", inav:"21,877.12", gap:"0.01%", desc:"미국 S&P500 지수를 추종하는 패시브 ETF" },
+  "133690": { price:"142,350", chg:"+1,850 (+1.32%)", inav:"142,338.40", gap:"0.01%", desc:"미국 나스닥100 지수를 추종하는 패시브 ETF" },
+  "476690": { price:"9,805", chg:"+200 (+2.08%)", inav:"9,803.88", gap:"0.01%", desc:"비만치료제 관련 매출이 발생하는 글로벌 빅파마 10종목에 투자하는 패시브 ETF" },
+};
+function stockChart(){
+  const pts = "0,52 28,38 52,44 76,20 104,26 128,58 152,70 180,64 204,88 228,80 252,96 276,70 300,84 324,96 348,104 372,88";
+  return `<svg viewBox="0 0 384 130" xmlns="http://www.w3.org/2000/svg">
+    <line x1="0" y1="36" x2="384" y2="36" stroke="#22242e" stroke-dasharray="3 3"/>
+    <line x1="0" y1="78" x2="384" y2="78" stroke="#22242e" stroke-dasharray="3 3"/>
+    <polyline points="${pts}" fill="none" stroke="#f04452" stroke-width="2.4" stroke-linejoin="round"/></svg>`;
+}
+function openStock(cd, nm){
+  const d = ETF_INFO[cd] || { price:"10,000", chg:"+0 (0.00%)", inav:"-", gap:"-", desc:"" };
+  document.getElementById("stockview").innerHTML = `
+    <div class="shdr"><span style="width:26px; color:#8a8f98; font-size:17px; margin-top:4px;">ⓘ</span>
+      <div class="snm"><div class="scode">${cd}</div><div class="sname">${nm}</div></div>
+      <button class="nx" onclick="document.getElementById('stockpop').style.display='none'">✕</button></div>
+    <div style="padding:12px 16px 0;"><span class="sbdg" style="background:#143428; color:#39c58b;">개인연금</span><span class="sbdg" style="background:#1d2347; color:#8b9bf0;">퇴직연금</span></div>
+    <div class="sprice"><div class="pv">${d.price}</div><div class="pc">${d.chg}</div></div>
+    <div class="sinav"><span>iNAV&nbsp; <b style="color:#c9cdd6;">${d.inav}</b></span><span>괴리율&nbsp; <b style="color:#f04452;">${d.gap}</b></span></div>
+    <div class="stabs"><span class="stab on">일</span><span class="stab">주</span><span class="stab">월</span><span class="stab">년</span></div>
+    <div class="schart">${stockChart()}</div>
+    <div class="sxaxis"><span>2026/08/28</span><span>2026/09/16</span><span>10/08</span></div>
+    <div class="stabs2"><span class="stab2 on">개요</span><span class="stab2">구성</span><span class="stab2">배당</span><span class="stab2">키움인사이트</span></div>
+    <div class="soverview"><div class="ot">종목개요</div><div class="ob">${d.desc}</div></div>
+    <div class="sbtns">
+      <button class="b1" onclick="alert('네이티브 — 관심종목 담기')">＋</button>
+      <button class="b2" onclick="alert('네이티브 — 더모으기(적립식) 화면')">더모으기</button>
+      <button class="b3" onclick="alert('네이티브 — 주문 화면으로 이동')">바로주문</button></div>`;
+  document.getElementById("stockpop").style.display = "flex";
+}
+
+// ---------- 숏츠 (관리자 미리보기용 — 홈 진입 없음) ----------
+const shThumb = vid => `<img src="https://i.ytimg.com/vi/${vid}/oardefault.jpg" onerror="if(!this.dataset.f){this.dataset.f=1; this.src='https://i.ytimg.com/vi/${vid}/hqdefault.jpg';}else{this.remove();}">`;
+async function vShorts(){
+  SERIES = await api("/api/series");
+  const rows = await api("/api/contents?fmt=shorts");
+  $v.innerHTML = hdr(true) + `<div class="sec">ETF 숏츠 <span class="cnt2">총 ${rows.length}개</span></div>
+    <div class="shgrid">${rows.map(c=>`<div class="shcard" onclick="location.hash='#short/${c.id}'">
+      <div class="thv">숏츠${c.video_id?shThumb(c.video_id):""}</div><div class="st2">${esc(c.title)}</div></div>`).join("")}</div>` +
+    (rows.length?"":`<div class="empty">노출 중인 숏츠가 없습니다</div>`);
+}
+async function vShort(id){
+  SERIES = await api("/api/series");
+  const c = await api(`/api/contents/${id}?view=1`);
+  $v.innerHTML = dhdr(c.series_name) + `
+    <div class="pwrap"><iframe src="https://www.youtube.com/embed/${c.video_id}?autoplay=1&mute=1&playsinline=1&rel=0&loop=1&playlist=${c.video_id}"
+      allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe></div>
+    <div class="sec" style="font-size:15px;">${esc(c.title)}</div>
+    <div style="padding:2px 18px 20px;">${badge(c.series_id, c.series_name)} <span style="font-size:11px; color:#a2a7b0;"> ${dt(c.start_at)} · 조회 ${c.views.toLocaleString()}</span></div>`;
+  window.scrollTo(0,0);
+}
+
+// ---------- 라우터 ----------
+function route(){
+  const h = location.hash || "#home";
+  const [path, qs] = h.slice(1).split("?");
+  const p = new URLSearchParams(qs||"");
+  if(path.startsWith("short/")) return vShort(path.split("/")[1]);
+  if(path.startsWith("shorts")) return vShorts();
+  if(path.startsWith("post/")) return vPost(path.split("/")[1]);
+  if(path.startsWith("series/")) return vList("", path.split("/")[1]); // 구버전 링크 호환
+  if(path.startsWith("list")) return vList(p.get("q")||"", p.get("s")||0);
+  return vHome();
+}
+window.addEventListener("hashchange", route);
+route();
+</script>
+</body>
+</html>

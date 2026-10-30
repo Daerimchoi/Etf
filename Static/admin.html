@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ETF 투자트랜드_정리 (관리자)</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; font-family:"Malgun Gothic","Noto Sans CJK KR",sans-serif; }
+  body { background:#eef1f5; color:#1a1a1a; }
+  header { background:#0a3968; color:#fff; padding:14px 24px; display:flex; align-items:center; gap:18px; }
+  header h1 { font-size:17px; }
+  header .tab { color:#9fb0c7; font-size:13px; font-weight:700; cursor:pointer; padding:6px 2px; }
+  header .tab.on { color:#fff; border-bottom:2px solid #da0075; }
+  header a { margin-left:auto; color:#cfd9e6; font-size:12px; text-decoration:none; border:1px solid #3d5a7d; border-radius:6px; padding:5px 10px; }
+  main { max-width:980px; margin:20px auto; padding:0 16px; }
+  .panel { background:#fff; border:1px solid #c9cdd6; border-radius:8px; padding:18px 20px; margin-bottom:16px; }
+  .ptitle { font-size:15px; font-weight:800; margin-bottom:12px; display:flex; align-items:center; }
+  .btn { display:inline-block; border:none; font-size:12px; font-weight:700; border-radius:6px; padding:8px 15px; cursor:pointer; background:#fff; }
+  .bp { background:#0a3968; color:#fff; }
+  .bo { border:1px solid #0a3968; color:#0a3968; }
+  .bd { border:1px solid #da0075; color:#da0075; }
+  table { width:100%; border-collapse:collapse; }
+  th { background:#0a3968; color:#fff; font-size:12px; padding:9px 6px; }
+  td { border:1px solid #dfe3ea; font-size:12px; padding:8px 6px; text-align:center; }
+  td.l { text-align:left; }
+  .dim td { color:#9aa1ac; }
+  .chip-a { font-size:11px; color:#0a3968; border:1px solid #0a3968; border-radius:4px; padding:2px 8px; cursor:pointer; background:#fff; }
+  .chip-d { font-size:11px; color:#da0075; border:1px solid #da0075; border-radius:4px; padding:2px 8px; cursor:pointer; background:#fff; }
+  .tag-exp { font-size:10px; color:#b45f06; background:#fdf0dd; border-radius:3px; padding:1px 5px; margin-left:5px; }
+  /* form */
+  .frow { display:flex; align-items:stretch; margin-bottom:10px; position:relative; }
+  .flbl { width:130px; flex:none; background:#e9edf4; color:#0a3968; font-size:12px; font-weight:800; padding:10px 6px; border:1px solid #c9cdd6; text-align:center; border-radius:5px 0 0 5px; display:flex; align-items:center; justify-content:center; }
+  .fval { flex:1; border:1px solid #c9cdd6; border-left:none; background:#fff; padding:8px 10px; font-size:12.5px; border-radius:0 5px 5px 0; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .req::after { content:" *"; color:#da0075; }
+  input[type=text], input[type=datetime-local], select, textarea { border:1px solid #c9cdd6; border-radius:5px; padding:7px 9px; font-size:12.5px; font-family:inherit; }
+  input.grow { flex:1; min-width:120px; }
+  .cnt { font-size:11px; color:#8a8f98; margin-left:auto; }
+  .hint { font-size:11px; color:#8a8f98; }
+  .half { display:flex; gap:14px; }
+  .half > .frow { flex:1; }
+  .etool { background:#f1f3f7; border:1px solid #c9cdd6; border-bottom:none; border-radius:5px 5px 0 0; padding:7px 10px; display:flex; gap:10px; align-items:center; }
+  .etool button { border:1px solid #c9cdd6; background:#fff; border-radius:4px; padding:4px 9px; font-size:12px; cursor:pointer; }
+  #editor { border:1px solid #c9cdd6; border-radius:0 0 5px 5px; min-height:220px; padding:14px; font-size:13.5px; line-height:1.7; background:#fff; outline:none; }
+  #editor img { max-width:100%; border-radius:8px; }
+  .thumbprev { max-height:70px; border-radius:6px; }
+  .foot { display:flex; gap:8px; margin-top:16px; align-items:center; }
+  .searchrow { display:flex; gap:8px; margin-bottom:12px; }
+  .toast { position:fixed; left:50%; bottom:28px; transform:translateX(-50%); background:#0a3968; color:#fff; font-size:13px; padding:10px 20px; border-radius:8px; display:none; z-index:99; }
+  .hide { display:none !important; }
+</style>
+</head>
+<body>
+<header>
+  <h1>ETF 투자트랜드_정리</h1>
+  <span class="tab on" data-v="list">컨텐츠 관리</span>
+  <span class="tab" data-v="series">시리즈 관리</span>
+  <span class="tab" data-v="notice">공통 유의문구</span>
+  <a href="/app" target="_blank">고객 화면 열기 ↗</a>
+</header>
+<main>
+
+<!-- ===== 컨텐츠 목록 ===== -->
+<section id="v-list">
+  <div class="panel">
+    <div class="searchrow">
+      <select id="f-series" style="width:150px;"><option value="0">컨텐츠 유형: 전체</option></select>
+      <input type="text" id="f-q" class="grow" placeholder="검색어 — 제목 · 핵심키워드 · SUMMARY · 본문" style="flex:1;">
+      <button class="btn bp" onclick="loadList()">조회</button>
+      <button class="btn bp" onclick="openForm()">＋ 신규 등록</button>
+    </div>
+    <table>
+      <thead><tr><th style="width:50px;">번호</th><th style="width:100px;">유형</th><th style="width:52px;">포맷</th><th>제목</th><th style="width:55px;">사용</th><th style="width:88px;">노출상태</th><th style="width:170px;">노출기간</th><th style="width:60px;">조회</th><th style="width:55px;">추천</th><th style="width:110px;">관리</th></tr></thead>
+      <tbody id="list-body"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ===== 등록/수정 폼 ===== -->
+<section id="v-form" class="hide">
+  <div class="panel">
+    <div class="ptitle"><span id="form-title">컨텐츠 등록</span><span class="cnt">* 필수 입력</span></div>
+    <div class="half">
+      <div class="frow"><div class="flbl">게시글 번호</div><div class="fval" id="f-id" style="background:#f1f3f7; color:#5f6672;">자동생성 (수정불가)</div></div>
+      <div class="frow"><div class="flbl req">사용여부</div><div class="fval">
+        <label><input type="radio" name="use" value="1"> 사용</label>
+        <label><input type="radio" name="use" value="0" checked> 미사용</label>
+        <span class="hint">기본 미사용 — 작성 중 노출 방지</span></div></div>
+    </div>
+    <div class="frow"><div class="flbl req">콘텐츠 포맷</div><div class="fval">
+      <label><input type="radio" name="cfmt" value="article" checked onchange="fmtChange()"> 아티클</label>
+      <label><input type="radio" name="cfmt" value="shorts" onchange="fmtChange()"> 숏츠(유튜브)</label>
+      <span class="hint">숏츠는 유튜브 URL만 등록 — 영상·썸네일은 고객 단말이 유튜브에서 직접 로드(서버 API 호출 없음)</span></div></div>
+    <div class="frow hide" id="row-video"><div class="flbl req">유튜브 URL</div><div class="fval">
+      <input type="text" id="c-vurl" class="grow" placeholder="https://www.youtube.com/shorts/XXXXXXXXXXX">
+      <button class="btn bo" onclick="loadVideo()">정보 불러오기</button>
+      <img id="v-thumb" class="thumbprev hide">
+      <span class="hint" id="v-hint">URL 입력 후 '정보 불러오기' — 제목·썸네일 자동 채움(실패 시 수동 입력)</span></div></div>
+    <div class="frow"><div class="flbl req">게시글 제목</div><div class="fval"><input type="text" id="c-title" class="grow" maxlength="50"><span class="cnt"><span id="cnt-title">0</span>/50</span></div></div>
+    <div class="frow"><div class="flbl req">노출기간</div><div class="fval">
+      <input type="datetime-local" id="c-start"> ~ <input type="datetime-local" id="c-end">
+      <label style="font-size:12px;"><input type="checkbox" id="c-noend"> 종료일 미지정</label></div></div>
+    <div class="frow"><div class="flbl req">컨텐츠 유형</div><div class="fval"><select id="c-series"></select><span class="hint">시리즈 관리 탭과 연동</span></div></div>
+    <div class="frow art-only"><div class="flbl req">메인 이미지</div><div class="fval">
+      <input type="file" id="c-img" accept="image/*" onchange="upMain(this)">
+      <img id="img-prev" class="thumbprev hide"><button class="btn bd hide" id="img-del" onclick="delMain()">삭제</button>
+      <span class="hint">권장 1080×600(1.8:1) — 상세 상단 배경(타이틀 오버레이)·카카오 공유 카드에 사용, 미등록 시 상세는 텍스트 제목으로 표시</span></div></div>
+    <div class="frow"><div class="flbl req">SUMMARY</div><div class="fval"><input type="text" id="c-summary" class="grow" maxlength="100" placeholder="목록 카드·상세 상단 요약"><span class="cnt"><span id="cnt-sum">0</span>/100</span></div></div>
+    <div class="frow"><div class="flbl">핵심키워드</div><div class="fval">
+      <input type="text" id="c-k1" placeholder="키워드1 *" style="width:110px;"><input type="text" id="c-k2" placeholder="키워드2" style="width:110px;">
+      <input type="text" id="c-k3" placeholder="키워드3" style="width:110px;"><input type="text" id="c-k4" placeholder="키워드4" style="width:110px;">
+      <span class="hint">고객 화면 태그·검색 매칭</span></div></div>
+    <div class="frow"><div class="flbl">심사필 유의사항</div><div class="fval"><input type="text" id="c-simsa" class="grow" placeholder="예) 준법감시인 심사필 제2026-0000호 (2026.09.22)"></div></div>
+    <div class="frow"><div class="flbl">유의사항(개별)</div><div class="fval"><input type="text" id="c-notice" class="grow" placeholder="게시글 개별 문구 — 공통 문구는 '공통 유의문구' 탭에서 일괄 관리"></div></div>
+    <div class="frow"><div class="flbl">CTA 버튼 문구</div><div class="fval">
+      <select id="c-ctalabel"><option value="">선택 안 함 (버튼 미노출)</option><option>ETF 탐색하기</option><option>관련상품 보러가기</option><option>콘텐츠 보러가기</option></select>
+      <span class="hint">프리셋 문구 — 선택 시 아래 '연결 화면번호' 필수</span></div></div>
+    <div class="frow"><div class="flbl">CTA 연결 화면번호</div><div class="fval">
+      <input type="text" id="c-ctascreen" style="width:130px;" maxlength="6" placeholder="예) 2851" inputmode="numeric">
+      <span class="hint">영웅문S# 화면번호 — 고객이 버튼 탭 시 해당 네이티브 화면으로 이동 (예: ETF 탐색 2851)</span></div></div>
+    <div class="half">
+      <div class="frow"><div class="flbl">인기 콘텐츠</div><div class="fval" style="flex-direction:column; align-items:stretch; gap:6px;">
+        <div style="display:flex; gap:8px; align-items:center;">
+          <select id="c-pop" onchange="popModeChange()"><option value="latest">자동 · 최신순</option><option value="ups">자동 · 추천순</option><option value="views">자동 · 조회순</option><option value="manual">수동 지정</option></select>
+          <span class="hint">고객 상세 '같은 주제 인기글' (최대 3건)</span></div>
+        <div id="pop-manual" class="hide">
+          <div style="display:flex; gap:6px;">
+            <input type="text" id="pop-q" class="grow" placeholder="게시글 제목 검색" onkeydown="if(event.key==='Enter'&&!event.isComposing)popSearch()">
+            <button class="btn bo" onclick="popSearch()">검색</button></div>
+          <div id="pop-results" style="display:flex; flex-direction:column; gap:4px; margin-top:6px;"></div>
+          <div id="pop-sel" style="display:flex; gap:6px; flex-wrap:wrap; margin-top:6px;"></div>
+        </div></div></div>
+      <div class="frow art-only"><div class="flbl">관련 PDF</div><div class="fval">
+        <input type="file" id="c-pdf" accept="application/pdf" onchange="upPdf(this)">
+        <span id="pdf-name" class="hint"></span><button class="btn bd hide" id="pdf-del" onclick="delPdf()">삭제</button></div></div>
+    </div>
+    <div class="frow"><div class="flbl">관련 ETF</div><div class="fval">
+      <input type="text" id="c-etfs" class="grow" placeholder="종목코드만 쉼표로 구분 — 예) 487550, 458730" inputmode="numeric">
+      <button class="btn bo" onclick="checkEtfs()">코드 확인</button>
+      <span class="hint">종목명은 종목 마스터에서 자동 조회 — 미등록 코드는 고객 화면에 노출되지 않습니다</span>
+      <div id="etf-prev" style="width:100%; display:flex; gap:6px; flex-wrap:wrap;"></div></div></div>
+    <div class="etool art-only">
+      <b style="font-size:12px; color:#0a3968;">본문 *</b>
+      <button onclick="fmt('bold')"><b>B</b></button><button onclick="fmt('italic')"><i>I</i></button><button onclick="fmt('underline')"><u>U</u></button>
+      <button onclick="fmt('formatBlock','h3')">소제목</button>
+      <button onclick="document.getElementById('ed-img').click()">🖼 이미지</button>
+      <input type="file" id="ed-img" accept="image/*" class="hide" onchange="upBody(this)">
+      <button onclick="fmt('insertHorizontalRule')">구분선</button>
+      <button onclick="fmt('undo')">↶</button><button onclick="fmt('redo')">↷</button>
+    </div>
+    <div id="editor" class="art-only" contenteditable="true"></div>
+    <div class="foot">
+      <button class="btn bd hide" id="btn-del" onclick="delContent()">삭제</button><span class="hint hide" id="del-hint">수정 모드만</span>
+      <span style="flex:1;"></span>
+      <button class="btn bo" onclick="preview()">미리보기</button>
+      <button class="btn bp" onclick="save()">저장</button>
+      <button class="btn bo" onclick="showView('list')">취소</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 시리즈 관리 ===== -->
+<section id="v-series" class="hide">
+  <div class="panel">
+    <div class="ptitle">투자 트렌드 시리즈 관리<span style="flex:1;"></span><button class="btn bp" onclick="openSeriesForm()">＋ 시리즈 추가</button></div>
+    <table>
+      <thead><tr><th style="width:58px;">노출 순서</th><th style="width:44px;">No</th><th style="width:110px;">트렌드명</th><th style="width:86px;">라벨 이미지</th><th style="width:86px;">카드 이미지</th><th style="width:76px;">목록 썸네일</th><th>소개문구</th><th style="width:60px;">사용여부</th><th style="width:66px;">컨텐츠 수</th><th style="width:60px;">관리</th></tr></thead>
+      <tbody id="series-body"></tbody>
+    </table>
+    <p class="hint" style="margin-top:10px;">· ▲▼로 노출 순서를 바꾸면 고객 홈 '시리즈별 컨텐츠' 카드·전체글 칩·등록 폼 선택지 순서에 즉시 반영됩니다. 신규 시리즈는 맨 뒤에 추가됩니다. 소속 컨텐츠가 있으면 미사용 처리만 가능합니다.</p>
+  </div>
+  <div class="panel hide" id="series-form">
+    <div class="ptitle"><span id="sform-title">시리즈 등록</span><span class="cnt">* 필수 입력</span></div>
+    <div class="frow"><div class="flbl req">트렌드명</div><div class="fval"><input type="text" id="s-name" class="grow" maxlength="20" placeholder="예) ETF 시황"><span class="cnt"><span id="cnt-sname">0</span>/20</span></div></div>
+    <div class="frow"><div class="flbl">소개문구</div><div class="fval"><input type="text" id="s-intro" class="grow" maxlength="80" placeholder="고객 화면 시리즈 카드에 노출되는 설명"><span class="cnt"><span id="cnt-sintro">0</span>/80</span></div></div>
+    <div class="frow"><div class="flbl req">라벨 이미지 (제목)</div><div class="fval">
+      <input type="file" id="s-limg" accept="image/*" onchange="upSeriesLabel(this)">
+      <img id="slimg-prev" class="thumbprev hide" style="max-height:26px;"><button class="btn bd hide" id="slimg-del" onclick="delSeriesLabel()">삭제</button>
+      <span class="hint">컨텐츠 목록 제목 위에 노출되는 시리즈 라벨 이미지(예: '투자자동향') — 미등록 시 텍스트 뱃지로 대체</span></div></div>
+    <div class="frow"><div class="flbl req">대표이미지 (카드)</div><div class="fval">
+      <input type="file" id="s-img" accept="image/*" onchange="upSeriesImg(this)">
+      <img id="simg-prev" class="thumbprev hide"><button class="btn bd hide" id="simg-del" onclick="delSeriesImg()">삭제</button>
+      <span class="hint">고객 홈 '시리즈별 컨텐츠' 카드의 큰 이미지 — 미등록 시 기본 색상 카드</span></div></div>
+    <div class="frow"><div class="flbl req">목록 썸네일</div><div class="fval">
+      <input type="file" id="s-icon" accept="image/*" onchange="upSeriesIcon(this)">
+      <img id="sicon-prev" class="thumbprev hide"><button class="btn bd hide" id="sicon-del" onclick="delSeriesIcon()">삭제</button>
+      <span class="hint">홈·전체글 리스트 제목 우측의 작은 아이콘 — 이 시리즈 글에 공통 적용 (권장 1:1 정방형)</span></div></div>
+    <div class="frow"><div class="flbl req">사용여부</div><div class="fval">
+      <label><input type="radio" name="suse" value="1" checked> 사용</label>
+      <label><input type="radio" name="suse" value="0"> 미사용</label>
+      <span class="hint">미사용 전환 시 소속 컨텐츠 전체가 고객 화면에서 미노출됩니다</span></div></div>
+    <div class="foot"><span style="flex:1;"></span>
+      <button class="btn bp" onclick="saveSeries()">저장</button>
+      <button class="btn bo" onclick="closeSeriesForm()">취소</button></div>
+  </div>
+</section>
+
+<!-- ===== 공통 유의문구 ===== -->
+<section id="v-notice" class="hide">
+  <div class="panel">
+    <div class="ptitle">공통 유의문구 템플릿 (전 게시글 '알아두세요' 자동 삽입)</div>
+    <textarea id="notice-text" style="width:100%; height:160px;"></textarea>
+    <div class="foot"><span class="hint">한 줄에 문구 하나 — 저장 시 전체 게시글에 즉시 일괄 반영</span><span style="flex:1;"></span>
+      <button class="btn bp" onclick="saveNotice()">저장</button></div>
+  </div>
+</section>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+let editId = null, mainImg = "", pdfUrl = "", pdfName = "";
+const $ = id => document.getElementById(id);
+const toast = m => { const t=$("toast"); t.textContent=m; t.style.display="block"; setTimeout(()=>t.style.display="none",1800); };
+const api = (u, opt) => fetch(u, opt).then(async r => { if(!r.ok){ const e = await r.json().catch(()=>({detail:"오류"})); throw new Error(e.detail);} return r.json(); });
+
+// 탭
+document.querySelectorAll("header .tab").forEach(t => t.onclick = () => showView(t.dataset.v));
+function showView(v){
+  document.querySelectorAll("header .tab").forEach(t => t.classList.toggle("on", t.dataset.v===v));
+  ["list","form","series","notice"].forEach(x => $("v-"+x).classList.toggle("hide", x!==v && !(v==="list"&&x==="form"&&false)));
+  if(v==="list"){ $("v-form").classList.add("hide"); loadList(); }
+  if(v==="series") loadSeries();
+  if(v==="notice") api("/api/notice").then(d => $("notice-text").value = d.value);
+}
+
+// ---------- 목록 ----------
+async function loadSeriesOptions(){
+  const s = await api("/api/series");
+  $("f-series").innerHTML = '<option value="0">컨텐츠 유형: 전체</option>' + s.map(x=>`<option value="${x.id}">${x.name}</option>`).join("");
+  $("c-series").innerHTML = s.filter(x=>x.use).map(x=>`<option value="${x.id}">${x.name}</option>`).join("");
+  return s;
+}
+async function loadList(){
+  await loadSeriesOptions();
+  const q = encodeURIComponent($("f-q").value), sid = $("f-series").value;
+  const rows = await api(`/api/contents?admin=1&q=${q}&series=${sid}`);
+  const now = new Date().toISOString().slice(0,16);
+  $("list-body").innerHTML = rows.map(r => {
+    const expired = !r.no_end && r.end_at && r.end_at < now;
+    let st, stc;
+    if (!r.series_use)      { st = "시리즈 미사용"; stc = "#b45f06"; }
+    else if (!r.use)        { st = "미사용";       stc = "#8a8f98"; }
+    else if (r.start_at > now) { st = "노출 대기";  stc = "#b45f06"; }
+    else if (expired)       { st = "기간만료";     stc = "#b45f06"; }
+    else                    { st = "노출중 ●";     stc = "#0f8a5f"; }
+    return `<tr class="${r.use?'':'dim'}">
+      <td>${r.id}</td><td>${r.series_name}</td>
+      <td>${r.format==='shorts'?'<span style="color:#da0075; font-weight:800;">숏츠</span>':'아티클'}</td>
+      <td class="l">${r.title}</td>
+      <td>${r.use?'사용':'미사용'}</td>
+      <td style="color:${stc}; font-weight:800;">${st}</td>
+      <td>${(r.start_at||'').replace('T',' ')} ~ ${r.no_end?'무기한':(r.end_at||'').replace('T',' ')}</td>
+      <td>${r.views.toLocaleString()}</td><td>${r.ups.toLocaleString()}</td>
+      <td><span class="chip-a" onclick="openForm(${r.id})">수정</span> <span class="chip-d" onclick="delRow(${r.id})">삭제</span></td></tr>`;
+  }).join("") || '<tr><td colspan="10">등록된 컨텐츠가 없습니다</td></tr>';
+}
+async function delRow(id){
+  if(!confirm("삭제하시겠습니까?") || !confirm("삭제 시 고객 화면에서 즉시 미노출됩니다. (데이터는 보존) 진행할까요?")) return;
+  await api(`/api/contents/${id}`, {method:"DELETE"}); toast("삭제되었습니다"); loadList();
+}
+
+// ---------- 폼 ----------
+async function openForm(id){
+  await loadSeriesOptions();
+  editId = id || null; mainImg=""; pdfUrl=""; pdfName="";
+  $("form-title").textContent = id ? "컨텐츠 수정" : "컨텐츠 등록";
+  $("btn-del").classList.toggle("hide", !id); $("del-hint").classList.toggle("hide", !id);
+  const now = new Date(); now.setMinutes(now.getMinutes()-now.getTimezoneOffset());
+  const nowS = now.toISOString().slice(0,16);
+  const end30 = new Date(now); end30.setDate(end30.getDate()+30);
+  const endS = end30.toISOString().slice(0,16);
+  let d = { title:"", summary:"", use:0, start_at:nowS, end_at:endS, no_end:0, series_id:$("c-series").value,
+            k1:"",k2:"",k3:"",k4:"", simsa:"", notice:"", body_html:"", cta_label:"", cta_type:"", cta_target:"",
+            pop_mode:"latest", pop_ids:"", main_image:"", pdf_url:"", pdf_name:"", etfs:"", format:"article", video_id:"", video_url:"", cta_screen:"" };
+  if(id) d = await api(`/api/contents/${id}`);
+  $("f-id").textContent = id ? id : "자동생성 (수정불가)";
+  $("c-title").value=d.title; $("c-summary").value=d.summary;
+  document.querySelector(`input[name=use][value="${d.use}"]`).checked = true;
+  $("c-start").value=d.start_at; $("c-end").value=d.end_at; $("c-noend").checked=!!d.no_end;
+  $("c-series").value=d.series_id;
+  $("c-k1").value=d.k1; $("c-k2").value=d.k2; $("c-k3").value=d.k3; $("c-k4").value=d.k4;
+  $("c-simsa").value=d.simsa; $("c-notice").value=d.notice;
+  $("c-ctalabel").value=d.cta_label; $("c-ctascreen").value=d.cta_screen||"";
+  $("c-pop").value=d.pop_mode||"latest";
+  popSel = [];
+  if(d.pop_ids){   // 지정 글 제목 복원
+    const all = await api("/api/contents?admin=1");
+    popSel = d.pop_ids.split(",").map(x=>+x).map(id=>{ const f=all.find(r=>r.id===id); return f?{id, title:f.title}:null; }).filter(Boolean);
+  }
+  renderPopSel(); $("pop-results").innerHTML=""; $("pop-q").value=""; popModeChange(); $("c-etfs").value=d.etfs;
+  $("editor").innerHTML=d.body_html;
+  mainImg=d.main_image; pdfUrl=d.pdf_url; pdfName=d.pdf_name;
+  $("img-prev").src=mainImg; $("img-prev").classList.toggle("hide",!mainImg); $("img-del").classList.toggle("hide",!mainImg);
+  $("pdf-name").textContent=pdfName; $("pdf-del").classList.toggle("hide",!pdfUrl);
+  videoId = d.video_id || "";
+  document.querySelector(`input[name=cfmt][value="${d.format||'article'}"]`).checked = true;
+  $("c-vurl").value = d.video_url || "";
+  setThumb(videoId);
+  $("v-hint").textContent = videoId ? "영상 ID: " + videoId : "URL 입력 후 '정보 불러오기' — 제목·썸네일 자동 채움(실패 시 수동 입력)";
+  fmtChange();
+  $("etf-prev").innerHTML=""; if(d.etfs) checkEtfs();
+  cnt(); $("v-list").classList.add("hide"); $("v-form").classList.remove("hide");
+}
+function cnt(){ $("cnt-title").textContent=$("c-title").value.length; $("cnt-sum").textContent=$("c-summary").value.length; }
+$("c-title").oninput=cnt; $("c-summary").oninput=cnt;
+
+// ---------- 숏츠 ----------
+let videoId = "";
+const curFmt = () => document.querySelector("input[name=cfmt]:checked").value;
+function fmtChange(){
+  const sh = curFmt()==="shorts";
+  document.querySelectorAll(".art-only").forEach(el => el.classList.toggle("hide", sh));
+  $("row-video").classList.toggle("hide", !sh);
+}
+const parseVid = u => { const m = (u||"").match(/(?:shorts\/|watch\?v=|youtu\.be\/|embed\/)([\w-]{11})/); return m ? m[1] : ""; };
+function setThumb(vid){
+  const t = $("v-thumb"); if(!vid){ t.classList.add("hide"); return; }
+  t.onerror = () => { t.onerror = () => { t.onerror=null; t.src=`https://i.ytimg.com/vi/${vid}/hqdefault.jpg`; }; t.src=`https://i.ytimg.com/vi/${vid}/maxresdefault.jpg`; };
+  t.src = `https://i.ytimg.com/vi/${vid}/oardefault.jpg`;
+  t.classList.remove("hide");
+}
+async function loadVideo(){
+  const url = $("c-vurl").value.trim();
+  videoId = parseVid(url);
+  if(!videoId){ alert("유튜브 URL에서 영상 ID(11자)를 찾지 못했습니다.\n예) https://www.youtube.com/shorts/XXXXXXXXXXX"); return; }
+  setThumb(videoId);
+  $("v-hint").textContent = "영상 ID: " + videoId + " — 썸네일 자동 연결됨";
+  try { // 관리자 PC 브라우저에서 oEmbed 직접 호출(서버 경유 없음) — 망 차단 시 제목 수동 입력
+    const r = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(url)}`).then(x=>x.json());
+    if(r.title && !$("c-title").value.trim()){ $("c-title").value = r.title.slice(0,50); cnt(); toast("유튜브 제목을 불러왔습니다"); }
+  } catch(e){ toast("제목 자동 조회 실패 — 제목을 직접 입력해 주세요"); }
+}
+
+async function upload(input){
+  const f = input.files[0]; if(!f) return null;
+  const fd = new FormData(); fd.append("file", f);
+  return await api("/api/upload", {method:"POST", body:fd});
+}
+async function upMain(inp){ const r=await upload(inp); if(r){ mainImg=r.url; $("img-prev").src=r.url; $("img-prev").classList.remove("hide"); $("img-del").classList.remove("hide"); } }
+function delMain(){ mainImg=""; $("c-img").value=""; $("img-prev").classList.add("hide"); $("img-del").classList.add("hide"); }
+async function upPdf(inp){ const r=await upload(inp); if(r){ pdfUrl=r.url; pdfName=r.name; $("pdf-name").textContent=r.name; $("pdf-del").classList.remove("hide"); } }
+function delPdf(){ pdfUrl=""; pdfName=""; $("c-pdf").value=""; $("pdf-name").textContent=""; $("pdf-del").classList.add("hide"); }
+async function upBody(inp){ const r=await upload(inp); if(r){ $("editor").focus(); document.execCommand("insertImage", false, r.url); } inp.value=""; }
+function fmt(cmd, val){ $("editor").focus(); document.execCommand(cmd, false, val||null); }
+
+async function checkEtfs(){
+  const codes = $("c-etfs").value.trim();
+  const box = $("etf-prev");
+  if(!codes){ box.innerHTML=""; return; }
+  const rows = await api(`/api/etf/lookup?codes=${encodeURIComponent(codes)}`);
+  box.innerHTML = rows.map(r => r.found
+    ? `<span style="font-size:11px; font-weight:700; color:#0f8a5f; background:#e5f6ef; border-radius:5px; padding:3px 8px;">✓ ${r.code} ${r.name}</span>`
+    : `<span style="font-size:11px; font-weight:700; color:#b45f06; background:#fdf2e2; border-radius:5px; padding:3px 8px;">✗ ${r.code} 미등록 — 고객 화면 미노출</span>`).join("");
+}
+// ⑬ 인기 콘텐츠 수동 지정
+let popSel = [];   // [{id,title}] 지정 순서 = 노출 순서
+function popModeChange(){ $("pop-manual").classList.toggle("hide", $("c-pop").value!=="manual"); }
+function renderPopSel(){
+  $("pop-sel").innerHTML = popSel.length
+    ? popSel.map((s,i)=>`<span style="font-size:11px; font-weight:700; color:#0a3968; background:#e9edf4; border-radius:5px; padding:4px 8px;">${i+1}. [${s.id}] ${s.title}
+        <span style="color:#da0075; cursor:pointer; margin-left:4px;" onclick="popSel.splice(${i},1); renderPopSel()">✕</span></span>`).join("")
+    : '<span class="hint">지정된 글 없음 — 검색해서 추가하세요 (지정 순서대로 노출)</span>';
+}
+async function popSearch(){
+  const q = $("pop-q").value.trim();
+  const rows = (await api(`/api/contents?admin=1&q=${encodeURIComponent(q)}`))
+    .filter(r => r.format!=="shorts" && r.id!==editId).slice(0,6);
+  $("pop-results").innerHTML = rows.map(r=>`<div style="display:flex; align-items:center; gap:8px; font-size:12px; border:1px solid #dfe3ea; border-radius:6px; padding:5px 9px;">
+      <span style="color:#8a8f98;">[${r.id}]</span><span style="flex:1;">${r.title}</span>
+      <span style="font-size:10px; color:${r.use?'#0f8a5f':'#b45f06'};">${r.use?'사용':'미사용'}</span>
+      <button class="chip-a" onclick="addPop(${r.id}, this.dataset.t)" data-t="${r.title.replace(/"/g,'&quot;')}">추가</button></div>`).join("")
+    || '<span class="hint">검색 결과 없음</span>';
+}
+function addPop(id, title){
+  if(popSel.some(s=>s.id===id)) return alert("이미 지정된 글입니다");
+  if(popSel.length>=3) return alert("최대 3건까지 지정할 수 있습니다");
+  popSel.push({id, title}); renderPopSel();
+}
+function collect(){
+  const sh = curFmt()==="shorts";
+  return {
+    format: curFmt(),
+    video_id: sh ? videoId : "", video_url: sh ? $("c-vurl").value.trim() : "",
+    title: $("c-title").value.trim(), summary: $("c-summary").value.trim(),
+    main_image: sh && videoId ? `https://i.ytimg.com/vi/${videoId}/oardefault.jpg` : mainImg,
+    use: +document.querySelector("input[name=use]:checked").value,
+    start_at: $("c-start").value, end_at: $("c-end").value, no_end: $("c-noend").checked?1:0,
+    series_id: +$("c-series").value,
+    k1:$("c-k1").value.trim(), k2:$("c-k2").value.trim(), k3:$("c-k3").value.trim(), k4:$("c-k4").value.trim(),
+    simsa:$("c-simsa").value.trim(), notice:$("c-notice").value.trim(),
+    body_html: $("editor").innerHTML, body_text: $("editor").innerText,
+    cta_label:$("c-ctalabel").value, cta_type:"화면이동", cta_target:"", cta_screen:$("c-ctascreen").value.trim(),
+    pop_mode:$("c-pop").value, pop_ids: popSel.map(s=>s.id).join(","), pdf_url:pdfUrl, pdf_name:pdfName, etfs:$("c-etfs").value.trim()
+  };
+}
+function validate(d){
+  if(!d.title) return "게시글 제목을 입력하세요";
+  if(!d.start_at) return "노출 시작일시를 입력하세요";
+  if(!d.no_end && !d.end_at) return "노출 종료일시를 입력하거나 '종료일 미지정'을 선택하세요";
+  if(!d.no_end && d.end_at < d.start_at) return "종료일시는 시작일시 이후여야 합니다";
+  if(!d.k1) return "핵심키워드 1은 필수입니다";
+  if(d.format==="shorts"){
+    if(!d.video_id) return "유튜브 URL을 입력하고 '정보 불러오기'를 눌러주세요";
+  } else {
+    if(!d.summary) return "SUMMARY를 입력하세요";
+    if(!$("editor").innerText.trim()) return "본문을 입력하세요";
+  }
+  if(d.cta_label && !/^[0-9]{3,6}$/.test(d.cta_screen)) return "CTA 문구를 선택했습니다 — 연결할 영웅문S# 화면번호(숫자)를 입력하세요";
+  if(d.etfs && /[^0-9,\s]/.test(d.etfs)) return "관련 ETF는 종목코드(숫자)만 쉼표로 구분해 입력하세요";
+  if(d.pop_mode==="manual" && !d.pop_ids) return "인기 콘텐츠 '수동 지정'을 선택했습니다 — 글을 1건 이상 지정하거나 자동 모드를 선택하세요";
+  if(d.use && !d.simsa && !confirm("심사필 표기 없이 '사용' 상태로 저장합니다. 진행할까요?")) return "STOP";
+  return null;
+}
+async function save(){
+  const d = collect(); const err = validate(d);
+  if(err){ if(err!=="STOP") alert(err); return; }
+  if(editId) await api(`/api/contents/${editId}`, {method:"PUT", headers:{"Content-Type":"application/json"}, body:JSON.stringify(d)});
+  else { const r = await api("/api/contents", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(d)}); editId = r.id; }
+  const nowT = new Date(); nowT.setMinutes(nowT.getMinutes()-nowT.getTimezoneOffset());
+  const nT = nowT.toISOString().slice(0,16);
+  if(!d.use) toast("저장됨 — '미사용' 상태라 고객 화면에는 노출되지 않습니다");
+  else if(d.start_at > nT) toast("저장됨 — 노출 시작 전(예약) 상태입니다");
+  else if(!d.no_end && d.end_at < nT) toast("저장됨 — 노출기간이 지나 고객 화면에 노출되지 않습니다");
+  else toast("저장 완료 — 고객 화면에 노출 중입니다");
+  showView("list");
+}
+async function preview(){
+  if(editId) window.open(`/app#post/${editId}`, "_blank");
+  else alert("저장 후 미리보기가 가능합니다");
+}
+async function delContent(){ if(editId) { await delRow(editId); showView("list"); } }
+
+// ---------- 시리즈 ----------
+let SROWS = [], sEditId = null, sImg = "", sIcon = "", sLbl = "";
+async function moveSeries(id, dir){
+  await api(`/api/series/${id}/move`, {method:"PUT", headers:{"Content-Type":"application/json"}, body:JSON.stringify({dir})});
+  toast("노출 순서 변경 — 고객 홈·칩·등록폼에 즉시 반영");
+  loadSeries();
+}
+async function loadSeries(){
+  SROWS = await api("/api/series");
+  $("series-body").innerHTML = SROWS.map((r,i)=>`<tr class="${r.use?'':'dim'}">
+    <td><b>${i+1}</b><br>
+      <span class="chip-a" style="padding:1px 6px;${i===0?'visibility:hidden;':''}" onclick="moveSeries(${r.id},'up')">▲</span>
+      <span class="chip-a" style="padding:1px 6px;${i===SROWS.length-1?'visibility:hidden;':''}" onclick="moveSeries(${r.id},'down')">▼</span></td>
+    <td>${r.id}</td><td>${r.name}</td>
+    <td>${r.label_image?`<img src="${r.label_image}" style="height:20px; border-radius:4px;">`:'<span class="hint">미등록</span>'}</td>
+    <td>${r.image?`<img src="${r.image}" style="height:34px; border-radius:5px;">`:'<span class="hint">미등록</span>'}</td>
+    <td>${r.icon?`<img src="${r.icon}" style="height:30px; width:30px; object-fit:cover; border-radius:7px;">`:'<span class="hint">미등록</span>'}</td>
+    <td class="l">${r.intro||""}</td>
+    <td>${r.use?'사용':'미사용'}</td><td>${r.cnt}</td>
+    <td><span class="chip-a" onclick="openSeriesForm(${r.id})">수정</span></td></tr>`).join("");
+}
+function openSeriesForm(id){
+  sEditId = id || null;
+  const d = id ? SROWS.find(r=>r.id===id) : {name:"",intro:"",use:1,image:"",icon:"",label_image:""};
+  $("sform-title").textContent = id ? `시리즈 수정 — No.${id}` : "시리즈 등록";
+  $("s-name").value = d.name; $("s-intro").value = d.intro||"";
+  document.querySelector(`input[name=suse][value="${d.use?1:0}"]`).checked = true;
+  sImg = d.image||""; sIcon = d.icon||""; sLbl = d.label_image||"";
+  $("slimg-prev").src = sLbl; $("slimg-prev").classList.toggle("hide", !sLbl); $("slimg-del").classList.toggle("hide", !sLbl);
+  $("simg-prev").src = sImg; $("simg-prev").classList.toggle("hide", !sImg); $("simg-del").classList.toggle("hide", !sImg);
+  $("sicon-prev").src = sIcon; $("sicon-prev").classList.toggle("hide", !sIcon); $("sicon-del").classList.toggle("hide", !sIcon);
+  sCnt(); $("series-form").classList.remove("hide");
+  $("series-form").scrollIntoView({behavior:"smooth"});
+}
+function closeSeriesForm(){ $("series-form").classList.add("hide"); }
+function sCnt(){ $("cnt-sname").textContent=$("s-name").value.length; $("cnt-sintro").textContent=$("s-intro").value.length; }
+$("s-name").oninput=sCnt; $("s-intro").oninput=sCnt;
+async function upSeriesImg(inp){ const r=await upload(inp); if(r){ sImg=r.url; $("simg-prev").src=r.url; $("simg-prev").classList.remove("hide"); $("simg-del").classList.remove("hide"); } }
+function delSeriesImg(){ sImg=""; $("s-img").value=""; $("simg-prev").classList.add("hide"); $("simg-del").classList.add("hide"); }
+async function upSeriesLabel(inp){ const r=await upload(inp); if(r){ sLbl=r.url; $("slimg-prev").src=r.url; $("slimg-prev").classList.remove("hide"); $("slimg-del").classList.remove("hide"); } }
+function delSeriesLabel(){ sLbl=""; $("s-limg").value=""; $("slimg-prev").classList.add("hide"); $("slimg-del").classList.add("hide"); }
+async function upSeriesIcon(inp){ const r=await upload(inp); if(r){ sIcon=r.url; $("sicon-prev").src=r.url; $("sicon-prev").classList.remove("hide"); $("sicon-del").classList.remove("hide"); } }
+function delSeriesIcon(){ sIcon=""; $("s-icon").value=""; $("sicon-prev").classList.add("hide"); $("sicon-del").classList.add("hide"); }
+async function saveSeries(){
+  const d = { name:$("s-name").value.trim(), intro:$("s-intro").value.trim(),
+              use:+document.querySelector("input[name=suse]:checked").value, image:sImg, icon:sIcon, label_image:sLbl };
+  if(!d.name) return alert("트렌드명을 입력하세요");
+  try {
+    if(sEditId) await api(`/api/series/${sEditId}`, {method:"PUT", headers:{"Content-Type":"application/json"}, body:JSON.stringify(d)});
+    else await api("/api/series", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(d)});
+  } catch(e){ return alert(e.message); }
+  toast(sEditId ? "시리즈 수정 완료 — 고객 화면 즉시 반영" : "시리즈 추가 완료 — 등록 폼·고객 화면 반영");
+  closeSeriesForm(); loadSeries();
+}
+
+// ---------- 공통 유의문구 ----------
+async function saveNotice(){
+  await api("/api/notice", {method:"PUT", headers:{"Content-Type":"application/json"}, body:JSON.stringify({value:$("notice-text").value})});
+  toast("저장 — 전 게시글에 일괄 반영되었습니다");
+}
+
+loadList();
+if(location.hash==="#new-shorts"){ openForm().then(()=>{ document.querySelector('input[name=cfmt][value="shorts"]').checked=true; fmtChange(); }); }
+</script>
+</body>
+</html>
